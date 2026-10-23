@@ -1,0 +1,1031 @@
+//@version=5
+indicator("NXS PROTOTYPE 2 C MANUAL LEVELS ONLY", overlay=true, max_lines_count=500, max_labels_count=500)
+
+// =============================================================================
+// 📦 BLOCK 1: THE FRONT-END (INPUTS & COMMAND DASHBOARDS)
+// =============================================================================
+
+// --- ENGINE 1 ---
+grp_e1 = "🟢 ENGINE 1 SETTINGS"
+sym_1        = input.symbol("CME_MINI:NQ1!", "Engine 1 Ticker (Blank = Current)", group=grp_e1)
+enable_e1    = input.bool(true, "Arm Engine 1", group=grp_e1)
+offset_1     = input.float(0.0, "Global Level Offset (+/-)", step=1.0, group=grp_e1)
+conf_1       = input.float(0.25, "Reclaim Threshold (Pts)", step=0.25, group=grp_e1)
+min_dist_1   = input.float(10.0, "Minimum Distance Between Levels (Pts)", step=5.0, group=grp_e1)
+
+use_c1       = input.bool(true, "Enable Manual String", inline="c1", group=grp_e1)
+str_1        = input.string("27201.50", "", inline="c1", group=grp_e1) 
+col_c1       = input.color(color.new(#FFFFFF, 0), "Col", inline="c1", group=grp_e1)
+style_c1     = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="c1", group=grp_e1)
+width_c1     = input.int(3, "W", minval=1, maxval=4, inline="c1", group=grp_e1)
+
+use_auto_1   = input.bool(true, "Enable Auto-Wicks (E1)", group=grp_e1)
+
+show_1_1     = input.bool(true, "Show 1M", inline="1_1", group=grp_e1), tf_1_1 = input.timeframe("1M", "", inline="1_1", group=grp_e1), lookback_1_1 = input.int(6, "Lbk", inline="1_1", group=grp_e1), col_1_1 = input.color(color.new(#FFFFFF, 0), "Col", inline="1_1", group=grp_e1), style_1_1 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="1_1", group=grp_e1), width_1_1 = input.int(3, "W", minval=1, maxval=4, inline="1_1", group=grp_e1)
+show_1_2     = input.bool(true, "Show 1W", inline="1_2", group=grp_e1), tf_1_2 = input.timeframe("1W", "", inline="1_2", group=grp_e1), lookback_1_2 = input.int(8, "Lbk", inline="1_2", group=grp_e1), col_1_2 = input.color(color.new(#FFFFFF, 0), "Col", inline="1_2", group=grp_e1), style_1_2 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="1_2", group=grp_e1), width_1_2 = input.int(3, "W", minval=1, maxval=4, inline="1_2", group=grp_e1)
+show_1_3     = input.bool(false, "Show 1D", inline="1_3", group=grp_e1), tf_1_3 = input.timeframe("D", "", inline="1_3", group=grp_e1), lookback_1_3 = input.int(60, "Lbk", inline="1_3", group=grp_e1), col_1_3 = input.color(color.new(#FFFFFF, 0), "Col", inline="1_3", group=grp_e1), style_1_3 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="1_3", group=grp_e1), width_1_3 = input.int(1, "W", minval=1, maxval=4, inline="1_3", group=grp_e1)
+show_1_4     = input.bool(false, "Show 4H", inline="1_4", group=grp_e1), tf_1_4 = input.timeframe("240", "", inline="1_4", group=grp_e1), lookback_1_4 = input.int(100, "Lbk", inline="1_4", group=grp_e1), col_1_4 = input.color(color.new(#FFFF00, 0), "Col", inline="1_4", group=grp_e1), style_1_4 = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="1_4", group=grp_e1), width_1_4 = input.int(1, "W", minval=1, maxval=4, inline="1_4", group=grp_e1)
+
+// --- ENGINE 2 ---
+grp_e2 = "🔵 ENGINE 2 SETTINGS"
+sym_2        = input.symbol("", "Engine 2 Ticker (Blank = Current)", group=grp_e2)
+enable_e2    = input.bool(false, "Arm Engine 2", group=grp_e2)
+offset_2     = input.float(0.0, "Global Level Offset (+/-)", step=1.0, group=grp_e2)
+conf_2       = input.float(0.25, "Reclaim Threshold (Pts)", step=0.25, group=grp_e2)
+min_dist_2   = input.float(10.0, "Minimum Distance Between Levels (Pts)", step=5.0, group=grp_e2)
+
+use_c2       = input.bool(false, "Enable Manual String", inline="c2", group=grp_e2)
+str_2        = input.string("", "", inline="c2", group=grp_e2)
+col_c2       = input.color(color.new(#FFFF00, 0), "Col", inline="c2", group=grp_e2)
+style_c2     = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="c2", group=grp_e2)
+width_c2     = input.int(3, "W", minval=1, maxval=4, inline="c2", group=grp_e2)
+
+use_auto_2   = input.bool(true, "Enable Auto-Wicks (E2)", group=grp_e2)
+
+show_2_1     = input.bool(true, "Show 1M", inline="2_1", group=grp_e2), tf_2_1 = input.timeframe("1M", "", inline="2_1", group=grp_e2), lookback_2_1 = input.int(100, "Lbk", inline="2_1", group=grp_e2), col_2_1 = input.color(color.new(#FFFFFF, 0), "Col", inline="2_1", group=grp_e2), style_2_1 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="2_1", group=grp_e2), width_2_1 = input.int(3, "W", minval=1, maxval=4, inline="2_1", group=grp_e2)
+show_2_2     = input.bool(true, "Show 1W", inline="2_2", group=grp_e2), tf_2_2 = input.timeframe("1W", "", inline="2_2", group=grp_e2), lookback_2_2 = input.int(52, "Lbk", inline="2_2", group=grp_e2), col_2_2 = input.color(color.new(#FFFFFF, 0), "Col", inline="2_2", group=grp_e2), style_2_2 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="2_2", group=grp_e2), width_2_2 = input.int(3, "W", minval=1, maxval=4, inline="2_2", group=grp_e2)
+show_2_3     = input.bool(false, "Show 1D", inline="2_3", group=grp_e2), tf_2_3 = input.timeframe("D", "", inline="2_3", group=grp_e2), lookback_2_3 = input.int(60, "Lbk", inline="2_3", group=grp_e2), col_2_3 = input.color(color.new(#FFFFFF, 0), "Col", inline="2_3", group=grp_e2), style_2_3 = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="2_3", group=grp_e2), width_2_3 = input.int(1, "W", minval=1, maxval=4, inline="2_3", group=grp_e2)
+show_2_4     = input.bool(false, "Show 4H", inline="2_4", group=grp_e2), tf_2_4 = input.timeframe("240", "", inline="2_4", group=grp_e2), lookback_2_4 = input.int(100, "Lbk", inline="2_4", group=grp_e2), col_2_4 = input.color(color.new(#FFFF00, 0), "Col", inline="2_4", group=grp_e2), style_2_4 = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="2_4", group=grp_e2), width_2_4 = input.int(1, "W", minval=1, maxval=4, inline="2_4", group=grp_e2)
+
+// --- ENGINE 3 ---
+grp_e3 = "🟣 ENGINE 3 SETTINGS"
+sym_3        = input.symbol("COINBASE:ETHUSD", "Engine 3 Ticker (Blank = Current)", group=grp_e3)
+enable_e3    = input.bool(false, "Arm Engine 3", group=grp_e3)
+offset_3     = input.float(0.0, "Global Level Offset (+/-)", step=1.0, group=grp_e3)
+conf_3       = input.float(0.05, "Reclaim Threshold (Pts)", step=0.05, group=grp_e3)
+min_dist_3   = input.float(10.0, "Minimum Distance Between Levels (Pts)", step=5.0, group=grp_e3)
+
+use_c3       = input.bool(false, "Enable Manual String", inline="c3", group=grp_e3)
+str_3        = input.string("", "", inline="c3", group=grp_e3)
+col_c3       = input.color(color.new(#FFFFFF, 0), "Col", inline="c3", group=grp_e3)
+style_c3     = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="c3", group=grp_e3)
+width_c3     = input.int(3, "W", minval=1, maxval=4, inline="c3", group=grp_e3)
+
+use_auto_3   = input.bool(true, "Enable Auto-Wicks (E3)", group=grp_e3)
+
+show_3_1     = input.bool(true, "Show 1M", inline="3_1", group=grp_e3), tf_3_1 = input.timeframe("1M", "", inline="3_1", group=grp_e3), lookback_3_1 = input.int(100, "Lbk", inline="3_1", group=grp_e3), col_3_1 = input.color(color.new(#FFFFFF, 0), "Col", inline="3_1", group=grp_e3), style_3_1 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="3_1", group=grp_e3), width_3_1 = input.int(3, "W", minval=1, maxval=4, inline="3_1", group=grp_e3)
+show_3_2     = input.bool(true, "Show 1W", inline="3_2", group=grp_e3), tf_3_2 = input.timeframe("1W", "", inline="3_2", group=grp_e3), lookback_3_2 = input.int(52, "Lbk", inline="3_2", group=grp_e3), col_3_2 = input.color(color.new(#FFFFFF, 0), "Col", inline="3_2", group=grp_e3), style_3_2 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="3_2", group=grp_e3), width_3_2 = input.int(3, "W", minval=1, maxval=4, inline="3_2", group=grp_e3)
+show_3_3     = input.bool(true, "Show 1D", inline="3_3", group=grp_e3), tf_3_3 = input.timeframe("720", "", inline="3_3", group=grp_e3), lookback_3_3 = input.int(20, "Lbk", inline="3_3", group=grp_e3), col_3_3 = input.color(color.new(#5B68DF, 0), "Col", inline="3_3", group=grp_e3), style_3_3 = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="3_3", group=grp_e3), width_3_3 = input.int(3, "W", minval=1, maxval=4, inline="3_3", group=grp_e3)
+show_3_4     = input.bool(false, "Show 4H", inline="3_4", group=grp_e3), tf_3_4 = input.timeframe("240", "", inline="3_4", group=grp_e3), lookback_3_4 = input.int(100, "Lbk", inline="3_4", group=grp_e3), col_3_4 = input.color(color.new(#FFFF00, 0), "Col", inline="3_4", group=grp_e3), style_3_4 = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="3_4", group=grp_e3), width_3_4 = input.int(1, "W", minval=1, maxval=4, inline="3_4", group=grp_e3)
+
+// --- SESSION COMMANDER & AIRSPACE ---
+grp_sess     = "⏱️ Session Commander & Airspace"
+delay_open   = input.int(2, "Open Session Delay (Bars)", group=grp_sess)
+delay_mid    = input.int(2, "Midday Session Delay (Bars)", group=grp_sess)
+mid_session  = input.session("1000-1600", "Midday Session Window (EST)", group=grp_sess)
+
+min_price    = input.float(10.0, "Min Macro Price (Floor)", step=10.0, group=grp_sess)
+max_price    = input.float(100000.0, "Max Macro Price (Ceiling)", step=10.0, group=grp_sess)
+min_lvl_dist = input.float(10.0, "Legacy Global Min Distance (Unused - See Per-Engine)", step=5.0, group=grp_sess)
+use_struct   = input.bool(false, "Require Origin from Level Above (Tripwire)", group=grp_sess)
+tripwire_pts = input.float(20.0, "Upper Tripwire Clearance (Pts)", step=1.0, group=grp_sess)
+min_sweep    = input.float(0.0, "Minimum Sweep Depth (Pts)", step=1.0, group=grp_sess)
+use_vertical_line = input.bool(true, "Use Time Validation (Skip Chop)", group=grp_sess)
+force_cage_stg1   = input.bool(true, "Project Net on initial Reclaim (Overrides Delay)", group=grp_sess)
+force_x_shift     = input.int(-1, "Force Net X-Shift (Minutes)", group=grp_sess)
+force_y_shift     = input.float(-0.45, "Force Net Y-Shift (Pts)", step=0.05, group=grp_sess)
+use_date_filter = input.bool(true, "Filter Levels by Start Date", group=grp_sess)
+start_date_ms   = input.time(timestamp("2020-01-01T11:00:00"), "Start Date", group=grp_sess)
+appr_mode   = input.string("Standard (Closes > Level)", "Approach Strictness", options=["Standard (Closes > Level)", "Strict (Lows > Level)"], group=grp_sess)
+appr_bars   = input.int(2, "Approach Sequence (Bars)", group=grp_sess)
+cooldown    = input.int(60, "Level Cooldown (Bars)", group=grp_sess)
+origin_bars = input.int(60, "Origin Lookback (Bars)", group=grp_sess)
+
+// --- COMBINED ALIGNMENT GATE (E1 + E2) ---
+grp_sync       = "🤝 Engine 1 + Engine 2 Combined Alignment"
+sync_mode      = input.string("Off (Independent Engines)", "Alignment Mode", options=["Off (Independent Engines)", "Mode 1: Tandem Reclaim (Within X Bars)", "Mode 2: Structural Sync (Other Engine Sweeping)", "Mode 3: Proximity Sync (Other Engine Near Level)", "Mode 4: Any Alignment (Mode 1, 2, or 3)"], group=grp_sync)
+mute_solo      = input.bool(false, "Mute Solo Signals (Only Draw & Alert Aligned)", group=grp_sync)
+sync_bars      = input.int(6, "Mode 1: Max Bars Between E1 & E2 Reclaim", minval=0, group=grp_sync)
+sync_prox_1    = input.float(20.0, "Mode 3: E1 (NQ) Level Proximity Tolerance (Pts)", step=1.0, group=grp_sync)
+sync_prox_2    = input.float(5.0, "Mode 3: E2 (ES) Level Proximity Tolerance (Pts)", step=0.5, group=grp_sync)
+reclaim_col_sync = input.color(color.new(#FFD700, 0), "Aligned Reclaim Circle Color (E1+E2 Sync)", group=grp_sync)
+flag_col_sync    = input.color(color.new(#FFD700, 0), "Aligned Base Line Color", group=grp_sync)
+
+// --- RISK MATRIX (CAGE) & VISUALS ---
+g_matrix = "💵 Risk Matrix (Base CB Unit)"
+cb_tier_1 = input.float(0.15, "Prem < $1.00", step=0.05, group=g_matrix), cb_tier_2 = input.float(0.25, "Prem $1.00 - $1.50", step=0.05, group=g_matrix), cb_tier_3 = input.float(0.50, "Prem $1.50 - $2.00", step=0.05, group=g_matrix), cb_tier_4 = input.float(0.50, "Prem $2.00 - $3.00", step=0.05, group=g_matrix), cb_tier_5 = input.float(0.50, "Prem $3.00 - $5.00", step=0.05, group=g_matrix), cb_tier_6 = input.float(0.75, "Prem $5.00 - $10.00", step=0.05, group=g_matrix), cb_tier_7 = input.float(1.00, "Prem $10.00 - $15.00", step=0.05, group=g_matrix), cb_tier_8 = input.float(2.50, "Prem > $15.00", step=0.05, group=g_matrix)
+
+g_cage_vis = "🎨 Cage Styling & Visibility"
+show_t6 = input.bool(false, "T6", inline="v6", group=g_cage_vis), len_t6 = input.int(20, "Len", inline="v6", group=g_cage_vis), col_t6 = input.color(color.new(#00FF00, 0), "Col", inline="v6", group=g_cage_vis)
+show_t5 = input.bool(false, "T5", inline="v5", group=g_cage_vis), len_t5 = input.int(20, "Len", inline="v5", group=g_cage_vis), col_t5 = input.color(color.new(#00FF00, 30), "Col", inline="v5", group=g_cage_vis)
+show_t4 = input.bool(false, "T4", inline="v4", group=g_cage_vis), len_t4 = input.int(18, "Len", inline="v4", group=g_cage_vis), col_t4 = input.color(color.new(#00FF00, 0), "Col", inline="v4", group=g_cage_vis)
+show_t3 = input.bool(true, "T3", inline="v3", group=g_cage_vis), len_t3 = input.int(20, "Len", inline="v3", group=g_cage_vis), col_t3 = input.color(color.new(#00FF00, 0), "Col", inline="v3", group=g_cage_vis)
+show_t2 = input.bool(false, "T2", inline="v2", group=g_cage_vis), len_t2 = input.int(14, "Len", inline="v2", group=g_cage_vis), col_t2 = input.color(color.new(#008000, 0), "Col", inline="v2", group=g_cage_vis)
+show_t1 = input.bool(false, "T1", inline="v1", group=g_cage_vis), len_t1 = input.int(12, "Len", inline="v1", group=g_cage_vis), col_t1 = input.color(color.new(#00FF00, 0), "Col", inline="v1", group=g_cage_vis)
+show_base = input.bool(true, "Base", inline="vb", group=g_cage_vis), len_base = input.int(15, "Len", inline="vb", group=g_cage_vis)
+show_s1 = input.bool(true, "S1", inline="vs1", group=g_cage_vis), len_s1 = input.int(8, "Len", inline="vs1", group=g_cage_vis), col_s1 = input.color(color.new(#FFFF00, 0), "Col", inline="vs1", group=g_cage_vis)
+show_s2 = input.bool(true, "S2", inline="vs2", group=g_cage_vis), len_s2 = input.int(6, "Len", inline="vs2", group=g_cage_vis), col_s2 = input.color(color.new(#FF0000, 0), "Col", inline="vs2", group=g_cage_vis)
+show_s3 = input.bool(true, "S3", inline="vs3", group=g_cage_vis), len_s3 = input.int(4, "Len", inline="vs3", group=g_cage_vis), col_s3 = input.color(color.new(#8B0000, 0), "Col", inline="vs3", group=g_cage_vis)
+
+g_cage_e1 = "🟢 ENGINE 1 Multipliers", e1_dial = input.float(1.5, "E1 Spacing Dial", step=0.05, group=g_cage_e1), e1_mult_t6 = input.float(1.07, "T6", inline="e1_t", group=g_cage_e1), e1_mult_t5 = input.float(0.88, "T5", inline="e1_t", group=g_cage_e1), e1_mult_t4 = input.float(0.78, "T4", inline="e1_t", group=g_cage_e1), e1_mult_t3 = input.float(0.58, "T3", inline="e1_tm", group=g_cage_e1), e1_mult_t2 = input.float(0.48, "T2", inline="e1_tm", group=g_cage_e1), e1_mult_t1 = input.float(0.21, "T1", inline="e1_tm", group=g_cage_e1), e1_mult_s1 = input.float(0.35, "S1", inline="e1_s", group=g_cage_e1), e1_mult_s2 = input.float(0.65, "S2", inline="e1_s", group=g_cage_e1), e1_mult_s3 = input.float(0.95, "S3", inline="e1_s", group=g_cage_e1)
+g_cage_e2 = "🔵 ENGINE 2 Multipliers", e2_dial = input.float(1.5, "E2 Spacing Dial", step=0.05, group=g_cage_e2), e2_mult_t6 = input.float(1.07, "T6", inline="e2_t", group=g_cage_e2), e2_mult_t5 = input.float(0.88, "T5", inline="e2_t", group=g_cage_e2), e2_mult_t4 = input.float(0.78, "T4", inline="e2_t", group=g_cage_e2), e2_mult_t3 = input.float(0.58, "T3", inline="e2_tm", group=g_cage_e2), e2_mult_t2 = input.float(0.48, "T2", inline="e2_tm", group=g_cage_e2), e2_mult_t1 = input.float(0.21, "T1", inline="e2_tm", group=g_cage_e2), e2_mult_s1 = input.float(0.35, "S1", inline="e2_s", group=g_cage_e2), e2_mult_s2 = input.float(0.65, "S2", inline="e2_s", group=g_cage_e2), e2_mult_s3 = input.float(0.95, "S3", inline="e2_s", group=g_cage_e2)
+g_cage_e3 = "🟣 ENGINE 3 Multipliers", e3_dial = input.float(1.5, "E3 Spacing Dial", step=0.05, group=g_cage_e3), e3_mult_t6 = input.float(1.07, "T6", inline="e3_t", group=g_cage_e3), e3_mult_t5 = input.float(0.88, "T5", inline="e3_t", group=g_cage_e3), e3_mult_t4 = input.float(0.78, "T4", inline="e3_t", group=g_cage_e3), e3_mult_t3 = input.float(0.58, "T3", inline="e3_tm", group=g_cage_e3), e3_mult_t2 = input.float(0.48, "T2", inline="e3_tm", group=g_cage_e3), e3_mult_t1 = input.float(0.21, "T1", inline="e3_tm", group=g_cage_e3), e3_mult_s1 = input.float(0.35, "S1", inline="e3_s", group=g_cage_e3), e3_mult_s2 = input.float(0.65, "S2", inline="e3_s", group=g_cage_e3), e3_mult_s3 = input.float(0.95, "S3", inline="e3_s", group=g_cage_e3)
+
+g_vis = "🎨 Flagpole & Extensions"
+plot_macro_grid = input.bool(true, "Plot Macro Grid Lines", group=g_vis), show_entry_lbl = input.bool(false, "Show Entry Tag Label", group=g_vis), len_mode = input.string("Individual", "Line Extension Mode", options=["Uniform", "Individual"], group=g_vis), master_len = input.int(5, "Uniform Length (m)", group=g_vis), flag_width = input.int(2, "Flag Width", group=g_vis)
+flag_col_e1 = input.color(color.new(#FFFF00, 0), "E1 Base Line Color", group=g_vis), flag_col_e2 = input.color(color.new(#FFFF00, 0), "E2 Base Line Color", group=g_vis), flag_col_e3 = input.color(color.new(#FFFF00, 0), "E3 Base Line Color", group=g_vis)
+reclaim_col_e1 = input.color(color.new(#00FF00, 0), "E1 Reclaim Circle Color (NQ)", group=g_vis)
+reclaim_col_e2 = input.color(color.new(#1E90FF, 0), "E2 Reclaim Circle Color (ES)", group=g_vis)
+reclaim_col_e3 = input.color(color.new(#DA70D6, 0), "E3 Reclaim Circle Color", group=g_vis)
+show_trig_shapes = input.bool(false, "Show Trap Triangles (E1/E2/E3 Trap)", group=g_vis)
+base_style_str = input.string("Solid", "Base Style", options=["Solid", "Dashed", "Dotted"], group=g_vis), tgt_style_str = input.string("Solid", "Targets Style", options=["Solid", "Dashed", "Dotted"], group=g_vis), sub_style_str = input.string("Solid", "Stops Style", options=["Solid", "Dashed", "Dotted"], group=g_vis)
+
+g_ticket = "🎫 Visual Ticket (Highlight Box)"
+show_ticket   = input.bool(false, "Print Ticket on Validation", group=g_ticket)
+ticket_anchor = input.string("Base", "Anchor Line", options=["T6", "T5", "T4", "T3", "T2", "T1", "Base", "S1", "S2", "S3"], group=g_ticket)
+ticket_height = input.float(0.50, "Box Height (Pts, +/-)", step=0.1, group=g_ticket)
+ticket_shift  = input.int(0, "Box Horizontal Shift (Minutes)", group=g_ticket)
+ticket_len    = input.int(10, "Box Length (Minutes)", group=g_ticket)
+ticket_col    = input.color(color.new(#00FF00, 30), "Fill Color", group=g_ticket)
+ticket_b_col  = input.color(color.new(#00FF00, 100), "Outline Color", group=g_ticket)
+ticket_b_w    = input.int(1, "Outline Width", minval=0, maxval=4, group=g_ticket)
+
+g_vm = "🖍️ Custom Vertical Marker"
+use_vm    = input.bool(true, "Enable Vertical Marker", group=g_vm)
+vm_ext_1  = input.float(1.0, "E1 Vertical Extension (Pts)", group=g_vm)
+vm_ext_2  = input.float(1.0, "E2 Vertical Extension (Pts)", group=g_vm)
+vm_ext_3  = input.float(4.5, "E3 Vertical Extension (Pts)", group=g_vm)
+vm_shift  = input.int(10, "Horizontal Shift (Bars)", group=g_vm)
+vm_col    = input.color(color.white, "Marker Color", group=g_vm)
+vm_thick  = input.int(1, "Thickness", group=g_vm)
+
+g_txt = "🔠 Text Styling"
+ts_col = input.color(color.new(#FFFFFF, 0), "Time Col", inline="t1", group=g_txt), ts_size_str = input.string("Small", "Size", options=["Tiny", "Small", "Normal", "Large"], inline="t1", group=g_txt), pr_col = input.color(color.new(#FFFFFF, 0), "Price Col", inline="t2", group=g_txt), pr_size_str = input.string("Small", "Size", options=["Tiny", "Small", "Normal", "Large"], inline="t2", group=g_txt), entry_col = input.color(color.new(#C0C0C0, 0), "Label Col", inline="t3", group=g_txt), entry_size_str = input.string("Small", "Size", options=["Tiny", "Small", "Normal", "Large"], inline="t3", group=g_txt)
+
+g_tbl = "📋 Levels Data Table & Styling"
+show_tbl = input.bool(false, "Show Active Levels HUD", group=g_tbl), tbl_pos = input.string("Middle Right", "HUD Position", options=["Top Right", "Middle Right", "Bottom Right", "Top Left", "Bottom Left"], group=g_tbl), tbl_txt_s = input.string("Small", "Text Size", options=["Tiny", "Small", "Normal", "Large"], group=g_tbl), col_head1 = input.color(color.new(#0000FF, 50), "E1 Header", inline="tb1", group=g_tbl), col_head2 = input.color(color.new(#800080, 50), "E2 Header", inline="tb1", group=g_tbl), col_head3 = input.color(color.new(#FFA500, 50), "E3 Header", inline="tb1", group=g_tbl), col_cellbg = input.color(color.new(#000000, 70), "Cell BG", inline="tb2", group=g_tbl), col_celltxt = input.color(color.new(#FFFFFF, 0), "Text", inline="tb2", group=g_tbl), mark_fresh = input.bool(true, "Highlight Fresh Levels", group=g_tbl), fresh_days = input.int(7, "Freshness (Days)", group=g_tbl), fresh_col = input.color(color.new(#00FA9A, 0), "Fresh Color", group=g_tbl)
+
+grp_vwap_f  = "🌪️ VWAP Signal Filter"
+mute_dir    = input.string("Off", "Filter Rule", options=["Off", "Mute if ABOVE Band", "Mute if BELOW Band"], group=grp_vwap_f), mute_ref    = input.string("Main VWAP", "Reference Band", options=["Upper Band 3", "Upper Band 2", "Upper Band 1", "Main VWAP", "Lower Band 1", "Lower Band 2", "Lower Band 3"], group=grp_vwap_f), anchor      = input.string("Session", "Anchor Period", options=["Session", "Week", "Month", "Quarter", "Year"], group=grp_vwap_f), calcMode    = input.string("Standard Deviation", "Calculation Mode", options=["Standard Deviation", "Percentage"], group=grp_vwap_f), bandMult_1  = input.float(1.0, "Multiplier 1", step=0.5, group=grp_vwap_f), bandMult_2  = input.float(2.0, "Multiplier 2", step=0.5, group=grp_vwap_f), bandMult_3  = input.float(3.0, "Multiplier 3", step=0.5, group=grp_vwap_f)
+
+// --- ALERT COMMAND CENTER & 30s DISCORD EMBED CARD ---
+grp_alerts   = "🔔 ALERT COMMAND CENTER"
+discord_json = input.bool(true, "Format Alerts for Discord Webhook (JSON)", group=grp_alerts)
+use_dc_card  = input.bool(true, "Use Rich Discord Embed Card (Timer/Reclaim)", group=grp_alerts)
+alt_tripwire = input.bool(false, "Tripwire Radar (Approaching Level)", group=grp_alerts)
+alt_timer    = input.bool(true, "Timer Started (Gray Dot / Delay Initiated)", group=grp_alerts)
+alt_killshot = input.bool(false, "Trap Validated (Killshot / Net Drawn)", group=grp_alerts)
+alt_line     = input.bool(false, "Line in the Sand (Vertical Marker Crossed)", group=grp_alerts)
+alt_tap      = input.bool(false, "Risk Cage Tap (Entry Hit Post-Validation)", group=grp_alerts)
+alt_tap_line = input.string("Base", "Target Line for Tap Alert", options=["T6", "T5", "T4", "T3", "T2", "T1", "Base", "S1", "S2", "S3"], group=grp_alerts)
+
+grp_discord    = "🎨 DISCORD CARD TEXT TEMPLATE (30s EDITION)"
+dc_bot_name    = input.string("NXS Sniper", "Bot Name", group=grp_discord)
+dc_ping        = input.string("", "Optional Ping (@here / <@&ROLE_ID>)", group=grp_discord)
+dc_e1_headline = input.string("🟢 LONG NASDAQ", "Engine 1 Headline", group=grp_discord)
+dc_e2_headline = input.string("🔵 LONG S&P", "Engine 2 Headline", group=grp_discord)
+dc_e3_headline = input.string("🟣 LONG ETH", "Engine 3 Headline", group=grp_discord)
+dc_sync_head   = input.string("⚡ ALIGNED LONG (NQ + ES)", "Aligned Signal Headline", group=grp_discord)
+dc_subtext     = input.string("", "Optional Subtext (Blank = Ultra-Clean)", group=grp_discord)
+dc_show_stats  = input.bool(true, "Show Tactical Stats (Structure, Sweep, Line in Sand)", group=grp_discord)
+dc_stat1_name  = input.string("🧱 Structure", "Stat 1 Title", group=grp_discord)
+dc_stat2_name  = input.string("🪝 Sweep", "Stat 2 Title", group=grp_discord)
+dc_stat3_name  = input.string("⏳ Line in Sand", "Stat 3 Title", group=grp_discord)
+dc_footer      = input.string("NXS 30s Execution", "Card Footer", group=grp_discord)
+
+f_escape_json(s) =>
+    str.replace_all(str.replace_all(s, "\\", "\\\\"), "\"", "\\\"")
+
+// Standard Discord Webhook JSON Formatter Helper (Used for secondary alerts)
+f_alert(msg, freq) =>
+    string safe_msg = f_escape_json(msg)
+    string payload  = discord_json ? "{\"content\": \"" + safe_msg + "\"}" : msg
+    alert(payload, freq)
+
+// 30-Second Execution Discord Embed Card Builder (Used for Primary Reclaim / Timer Alert)
+f_alert_reclaim_card(int e_id, bool is_aligned, string src_tier, float sweep_pts, freq) =>
+    string t_now = str.format_time(time, "HH:mm:ss", "America/New_York")
+    int bar_ms   = timeframe.in_seconds(timeframe.period) * 1000
+    string t_vm  = str.format_time(time + (vm_shift * bar_ms), "HH:mm:ss", "America/New_York")
+    string head  = is_aligned ? dc_sync_head : (e_id == 1 ? dc_e1_headline : e_id == 2 ? dc_e2_headline : dc_e3_headline)
+    int card_col = is_aligned ? 16766720 : (e_id == 1 ? 65280 : e_id == 2 ? 2003199 : 14315734)
+    string desc  = "⏱️ **`" + t_now + "` EST**" + (dc_subtext != "" ? "\n" + dc_subtext : "")
+    
+    if discord_json and use_dc_card
+        string fields_json = ""
+        if dc_show_stats
+            string sw_str = str.tostring(sweep_pts, "#.##") + " pts"
+            fields_json := ",\"fields\":["
+              + "{\"name\":\"" + f_escape_json(dc_stat1_name) + "\",\"value\":\"`" + f_escape_json(src_tier) + "`\",\"inline\":true},"
+              + "{\"name\":\"" + f_escape_json(dc_stat2_name) + "\",\"value\":\"`" + f_escape_json(sw_str) + "`\",\"inline\":true},"
+              + "{\"name\":\"" + f_escape_json(dc_stat3_name) + "\",\"value\":\"`" + t_vm + "`\",\"inline\":true}"
+              + "]"
+        string footer_json = dc_footer != "" ? ",\"footer\":{\"text\":\"" + f_escape_json(dc_footer) + "\"}" : ""
+        string payload = "{"
+          + "\"username\":\"" + f_escape_json(dc_bot_name) + "\","
+          + "\"content\":\"" + f_escape_json(dc_ping) + "\","
+          + "\"embeds\":[{"
+          + "\"title\":\"" + f_escape_json(head) + "\","
+          + "\"description\":\"" + f_escape_json(desc) + "\","
+          + "\"color\":" + str.tostring(card_col)
+          + fields_json
+          + footer_json
+          + "}]}"
+        alert(payload, freq)
+    else
+        f_alert(head + " | " + t_now + " EST", freq)
+
+// =============================================================================
+// 📦 BLOCK 2: DATA EXTRACTION & VWAP MATH
+// =============================================================================
+sym_1_eff = sym_1 == "" ? syminfo.tickerid : sym_1
+sym_2_eff = sym_2 == "" ? syminfo.tickerid : sym_2
+sym_3_eff = sym_3 == "" ? syminfo.tickerid : sym_3
+
+f_get_wicks(len) =>
+    a_h = array.new_float(0), a_l = array.new_float(0), a_t = array.new_int(0)
+    for i = 1 to len 
+        array.push(a_h, high[i]), array.push(a_l, low[i]), array.push(a_t, time[i])
+    [a_h, a_l, a_t]
+
+[h1_1, l1_1, t1_1] = request.security(sym_1_eff, tf_1_1, f_get_wicks(lookback_1_1)), [h1_2, l1_2, t1_2] = request.security(sym_1_eff, tf_1_2, f_get_wicks(lookback_1_2)), [h1_3, l1_3, t1_3] = request.security(sym_1_eff, tf_1_3, f_get_wicks(lookback_1_3)), [h1_4, l1_4, t1_4] = request.security(sym_1_eff, tf_1_4, f_get_wicks(lookback_1_4)), [h1, l1, c1, hlc3_1] = request.security(sym_1_eff, timeframe.period, [high, low, close, hlc3])
+[h2_1, l2_1, t2_1] = request.security(sym_2_eff, tf_2_1, f_get_wicks(lookback_2_1)), [h2_2, l2_2, t2_2] = request.security(sym_2_eff, tf_2_2, f_get_wicks(lookback_2_2)), [h2_3, l2_3, t2_3] = request.security(sym_2_eff, tf_2_3, f_get_wicks(lookback_2_3)), [h2_4, l2_4, t2_4] = request.security(sym_2_eff, tf_2_4, f_get_wicks(lookback_2_4)), [h2, l2, c2, hlc3_2] = request.security(sym_2_eff, timeframe.period, [high, low, close, hlc3])
+[h3_1, l3_1, t3_1] = request.security(sym_3_eff, tf_3_1, f_get_wicks(lookback_3_1)), [h3_2, l3_2, t3_2] = request.security(sym_3_eff, tf_3_2, f_get_wicks(lookback_3_2)), [h3_3, l3_3, t3_3] = request.security(sym_3_eff, tf_3_3, f_get_wicks(lookback_3_3)), [h3_4, l3_4, t3_4] = request.security(sym_3_eff, tf_3_4, f_get_wicks(lookback_3_4)), [h3, l3, c3, hlc3_3] = request.security(sym_3_eff, timeframe.period, [high, low, close, hlc3])
+
+isNewPeriod = false
+if anchor == "Session"
+    isNewPeriod := timeframe.change("D")
+else if anchor == "Week"
+    isNewPeriod := timeframe.change("W")
+else if anchor == "Month"
+    isNewPeriod := timeframe.change("M")
+else if anchor == "Quarter"
+    isNewPeriod := timeframe.change("3M")
+else if anchor == "Year"
+    isNewPeriod := timeframe.change("12M")
+if na(hlc3[1])
+    isNewPeriod := true
+
+[_vwap1, _stdevUpper1, _] = ta.vwap(hlc3_1, isNewPeriod, 1), bandBasis1 = calcMode == "Standard Deviation" ? (_stdevUpper1 - _vwap1) : _vwap1 * 0.01, ub3_1 = _vwap1 + bandBasis1 * bandMult_3, ub2_1 = _vwap1 + bandBasis1 * bandMult_2, ub1_1 = _vwap1 + bandBasis1 * bandMult_1, lb1_1 = _vwap1 - bandBasis1 * bandMult_1, lb2_1 = _vwap1 - bandBasis1 * bandMult_2, lb3_1 = _vwap1 - bandBasis1 * bandMult_3
+[_vwap2, _stdevUpper2, _] = ta.vwap(hlc3_2, isNewPeriod, 1), bandBasis2 = calcMode == "Standard Deviation" ? (_stdevUpper2 - _vwap2) : _vwap2 * 0.01, ub3_2 = _vwap2 + bandBasis2 * bandMult_3, ub2_2 = _vwap2 + bandBasis2 * bandMult_2, ub1_2 = _vwap2 + bandBasis2 * bandMult_1, lb1_2 = _vwap2 - bandBasis2 * bandMult_1, lb2_2 = _vwap2 - bandBasis2 * bandMult_2, lb3_2 = _vwap2 - bandBasis2 * bandMult_3
+[_vwap3, _stdevUpper3, _] = ta.vwap(hlc3_3, isNewPeriod, 1), bandBasis3 = calcMode == "Standard Deviation" ? (_stdevUpper3 - _vwap3) : _vwap3 * 0.01, ub3_3 = _vwap3 + bandBasis3 * bandMult_3, ub2_3 = _vwap3 + bandBasis3 * bandMult_2, ub1_3 = _vwap3 + bandBasis3 * bandMult_1, lb1_3 = _vwap3 - bandBasis3 * bandMult_1, lb2_3 = _vwap3 - bandBasis3 * bandMult_2, lb3_3 = _vwap3 - bandBasis3 * bandMult_3
+
+is_midday = not na(time(timeframe.period, mid_session, "America/New_York")), active_delay = is_midday ? delay_mid : delay_open
+min_l1_past = ta.lowest(l1, appr_bars)[1], min_c1_past = ta.lowest(c1, appr_bars)[1], max_h1_past = ta.highest(h1, origin_bars)[1]
+min_l2_past = ta.lowest(l2, appr_bars)[1], min_c2_past = ta.lowest(c2, appr_bars)[1], max_h2_past = ta.highest(h2, origin_bars)[1]
+min_l3_past = ta.lowest(l3, appr_bars)[1], min_c3_past = ta.lowest(c3, appr_bars)[1], max_h3_past = ta.highest(h3, origin_bars)[1]
+
+
+// =============================================================================
+// 📦 BLOCK 3: CORE TYPES & MEMORY BANK (CLUSTERING)
+// =============================================================================
+type RawLevel
+    float price
+    string source
+    int time_formed
+    color c
+    string s
+    int w
+    int tier
+
+type LevelTracker
+    float price
+    string source
+    int state
+    float t_low
+    int c_bar
+    int stage1_bar
+    int time_formed
+    color c
+    string s
+    int w
+    int tier
+    int last_stg1_time
+    int last_trig_time
+
+varip LevelTracker[] tr_1 = array.new<LevelTracker>()
+varip float[] sp_1 = array.new_float(0)
+varip LevelTracker[] tr_2 = array.new<LevelTracker>()
+varip float[] sp_2 = array.new_float(0)
+varip LevelTracker[] tr_3 = array.new<LevelTracker>()
+varip float[] sp_3 = array.new_float(0)
+
+varip RawLevel[] raw_1 = array.new<RawLevel>()
+varip RawLevel[] raw_2 = array.new<RawLevel>()
+varip RawLevel[] raw_3 = array.new<RawLevel>()
+
+varip bool fired_e1_this_bar = false
+varip bool fired_e2_this_bar = false
+varip bool fired_e3_this_bar = false
+
+varip int last_e1_reclaim_bar = -99999
+varip int last_e2_reclaim_bar = -99999
+
+if barstate.isnew
+    fired_e1_this_bar := false
+    fired_e2_this_bar := false
+    fired_e3_this_bar := false
+
+f_load_engine(arr_h, arr_l, arr_t, src_name, offset_val, raw_trackers, clr, stl, wid, tier) =>
+    if not na(arr_h) and not na(arr_l) and not na(arr_t)
+        if array.size(arr_h) > 0
+            for i = 0 to array.size(arr_h) - 1
+                int t_val = array.get(arr_t, i)
+                if not use_date_filter or t_val >= start_date_ms
+                    float h_val = array.get(arr_h, i) + offset_val
+                    float l_val = array.get(arr_l, i) + offset_val
+                    if not na(h_val) and h_val >= min_price and h_val <= max_price
+                        array.push(raw_trackers, RawLevel.new(h_val, src_name, t_val, clr, stl, wid, tier))
+                    if not na(l_val) and l_val >= min_price and l_val <= max_price
+                        array.push(raw_trackers, RawLevel.new(l_val, src_name, t_val, clr, stl, wid, tier))
+
+f_commit_cluster(cluster_arr, tr_arr, sp_arr, min_dist) =>
+    if array.size(cluster_arr) > 0
+        RawLevel chosen = array.get(cluster_arr, 0)
+        if array.size(cluster_arr) > 1
+            for c_idx = 1 to array.size(cluster_arr) - 1
+                RawLevel temp = array.get(cluster_arr, c_idx)
+                if temp.tier < chosen.tier
+                    chosen := temp
+        if array.size(sp_arr) == 0
+            array.push(tr_arr, LevelTracker.new(chosen.price, chosen.source, 0, 0.0, -cooldown, 0, chosen.time_formed, chosen.c, chosen.s, chosen.w, chosen.tier, 0, 0))
+            array.push(sp_arr, chosen.price)
+        else
+            int last_idx = array.size(sp_arr) - 1
+            float prev_p = array.get(sp_arr, last_idx)
+            if math.abs(chosen.price - prev_p) > min_dist
+                array.push(tr_arr, LevelTracker.new(chosen.price, chosen.source, 0, 0.0, -cooldown, 0, chosen.time_formed, chosen.c, chosen.s, chosen.w, chosen.tier, 0, 0))
+                array.push(sp_arr, chosen.price)
+            else
+                // Adjacent cluster winner is still within min_dist of previous locked level: keep higher priority tier
+                LevelTracker prev_tr = array.get(tr_arr, last_idx)
+                if chosen.tier < prev_tr.tier
+                    array.set(tr_arr, last_idx, LevelTracker.new(chosen.price, chosen.source, 0, 0.0, -cooldown, 0, chosen.time_formed, chosen.c, chosen.s, chosen.w, chosen.tier, 0, 0))
+                    array.set(sp_arr, last_idx, chosen.price)
+
+f_process_clusters(raw_trackers, tr_arr, sp_arr, min_dist) =>
+    if not na(raw_trackers) and array.size(raw_trackers) > 0
+        float[] prices = array.new_float(0)
+        for i = 0 to array.size(raw_trackers) - 1
+            array.push(prices, array.get(raw_trackers, i).price)
+        
+        int[] indices = array.sort_indices(prices)
+        RawLevel[] current_cluster = array.new<RawLevel>()
+        
+        for i = 0 to array.size(indices) - 1
+            RawLevel rl = array.get(raw_trackers, array.get(indices, i))
+            if array.size(current_cluster) == 0
+                array.push(current_cluster, rl)
+            else
+                RawLevel first_rl = array.get(current_cluster, 0)
+                if math.abs(rl.price - first_rl.price) <= min_dist
+                    array.push(current_cluster, rl)
+                else
+                    f_commit_cluster(current_cluster, tr_arr, sp_arr, min_dist)
+                    array.clear(current_cluster)
+                    array.push(current_cluster, rl)
+                    
+        if array.size(current_cluster) > 0
+            f_commit_cluster(current_cluster, tr_arr, sp_arr, min_dist)
+
+if ta.change(time("D")) != 0 or barstate.isfirst
+    array.clear(tr_1), array.clear(sp_1), array.clear(raw_1)
+    array.clear(tr_2), array.clear(sp_2), array.clear(raw_2)
+    array.clear(tr_3), array.clear(sp_3), array.clear(raw_3)
+    
+    if enable_e1
+        if use_c1
+            string[] p1 = str.split(str_1, ",")
+            if array.size(p1) > 0
+                for i = 0 to array.size(p1) - 1
+                    float val = str.tonumber(str.trim(array.get(p1, i)))
+                    if not na(val) and val >= min_price and val <= max_price
+                        array.push(raw_1, RawLevel.new(val + offset_1, "MANUAL", 0, col_c1, style_c1, width_c1, 1))
+        if use_auto_1
+            if show_1_1
+                f_load_engine(h1_1, l1_1, t1_1, tf_1_1, offset_1, raw_1, col_1_1, style_1_1, width_1_1, 2)
+            if show_1_2
+                f_load_engine(h1_2, l1_2, t1_2, tf_1_2, offset_1, raw_1, col_1_2, style_1_2, width_1_2, 3)
+            if show_1_3
+                f_load_engine(h1_3, l1_3, t1_3, tf_1_3, offset_1, raw_1, col_1_3, style_1_3, width_1_3, 4)
+            if show_1_4
+                f_load_engine(h1_4, l1_4, t1_4, tf_1_4, offset_1, raw_1, col_1_4, style_1_4, width_1_4, 5)
+        f_process_clusters(raw_1, tr_1, sp_1, min_dist_1)
+
+    if enable_e2
+        if use_c2
+            string[] p2 = str.split(str_2, ",")
+            if array.size(p2) > 0
+                for i = 0 to array.size(p2) - 1
+                    float val = str.tonumber(str.trim(array.get(p2, i)))
+                    if not na(val) and val >= min_price and val <= max_price
+                        array.push(raw_2, RawLevel.new(val + offset_2, "MANUAL", 0, col_c2, style_c2, width_c2, 1))
+        if use_auto_2
+            if show_2_1
+                f_load_engine(h2_1, l2_1, t2_1, tf_2_1, offset_2, raw_2, col_2_1, style_2_1, width_2_1, 2)
+            if show_2_2
+                f_load_engine(h2_2, l2_2, t2_2, tf_2_2, offset_2, raw_2, col_2_2, style_2_2, width_2_2, 3)
+            if show_2_3
+                f_load_engine(h2_3, l2_3, t2_3, tf_2_3, offset_2, raw_2, col_2_3, style_2_3, width_2_3, 4)
+            if show_2_4
+                f_load_engine(h2_4, l2_4, t2_4, tf_2_4, offset_2, raw_2, col_2_4, style_2_4, width_2_4, 5)
+        f_process_clusters(raw_2, tr_2, sp_2, min_dist_2)
+
+    if enable_e3
+        if use_c3
+            string[] p3 = str.split(str_3, ",")
+            if array.size(p3) > 0
+                for i = 0 to array.size(p3) - 1
+                    float val = str.tonumber(str.trim(array.get(p3, i)))
+                    if not na(val) and val >= min_price and val <= max_price
+                        array.push(raw_3, RawLevel.new(val + offset_3, "MANUAL", 0, col_c3, style_c3, width_c3, 1))
+        if use_auto_3
+            if show_3_1
+                f_load_engine(h3_1, l3_1, t3_1, tf_3_1, offset_3, raw_3, col_3_1, style_3_1, width_3_1, 2)
+            if show_3_2
+                f_load_engine(h3_2, l3_2, t3_2, tf_3_2, offset_3, raw_3, col_3_2, style_3_2, width_3_2, 3)
+            if show_3_3
+                f_load_engine(h3_3, l3_3, t3_3, tf_3_3, offset_3, raw_3, col_3_3, style_3_3, width_3_3, 4)
+            if show_3_4
+                f_load_engine(h3_4, l3_4, t3_4, tf_3_4, offset_3, raw_3, col_3_4, style_3_4, width_3_4, 5)
+        f_process_clusters(raw_3, tr_3, sp_3, min_dist_3)
+
+
+// =============================================================================
+// 📦 BLOCK 4: DRAWING ENGINE
+// =============================================================================
+f_get_size(s) => s == "Tiny" ? size.tiny : s == "Small" ? size.small : s == "Normal" ? size.normal : size.large
+f_get_style(s) => s == "Solid" ? line.style_solid : s == "Dotted" ? line.style_dotted : line.style_dashed
+
+// Arrays for Background Visual Ticket Queue
+varip float[] pending_tk_anch   = array.new_float(0)
+varip float[] pending_tk_top    = array.new_float(0)
+varip float[] pending_tk_bot    = array.new_float(0)
+varip int[]   pending_tk_time   = array.new_int(0)
+varip int[]   pending_tk_draw_t = array.new_int(0)
+
+f_draw_level(sh, p_val, l_val, c_val, st_str, nm, x_shift, y_shift) =>
+    if sh
+        float adj_p = p_val + y_shift
+        int st_t = time + (x_shift * 60000)
+        int et_t = st_t + ((len_mode == "Uniform" ? master_len : l_val) * 60000)
+        line.new(st_t, adj_p, et_t, adj_p, xloc=xloc.bar_time, color=c_val, width=flag_width, style=f_get_style(st_str))
+        label.new(et_t, adj_p, nm + " " + str.tostring(adj_p, "#.00"), xloc=xloc.bar_time, yloc=yloc.price, style=label.style_label_left, color=color.new(color.black, 100), textcolor=pr_col, size=f_get_size(pr_size_str))
+
+get_dynamic_cb(price) =>
+    price < 1.00 ? cb_tier_1 : price < 1.50 ? cb_tier_2 : price < 2.00 ? cb_tier_3 : price < 3.00 ? cb_tier_4 : price < 5.00 ? cb_tier_5 : price < 10.00 ? cb_tier_6 : price < 15.00 ? cb_tier_7 : cb_tier_8
+
+f_draw_risk_cage(lvl, flag_c, e_id, exec_p, shift_x, shift_y) =>
+    string prefix = e_id == 1 ? "E1" : e_id == 2 ? "E2" : "E3"
+    if show_entry_lbl
+        label.new(bar_index, low, text=prefix + " " + str.tostring(lvl), style=label.style_label_up, color=color.new(color.white, 100), textcolor=entry_col, size=f_get_size(entry_size_str))
+    
+    string t_str = str.format_time(time, "HH:mm:ss", "America/New_York")
+    label.new(time, exec_p, t_str, xloc=xloc.bar_time, yloc=yloc.price, style=label.style_label_right, color=color.new(color.black, 100), textcolor=ts_col, size=f_get_size(ts_size_str))
+
+    float dyn_cb = get_dynamic_cb(exec_p)
+    float mult_t6 = e_id == 1 ? e1_mult_t6 : e_id == 2 ? e2_mult_t6 : e3_mult_t6
+    float mult_t5 = e_id == 1 ? e1_mult_t5 : e_id == 2 ? e2_mult_t5 : e3_mult_t5
+    float mult_t4 = e_id == 1 ? e1_mult_t4 : e_id == 2 ? e2_mult_t4 : e3_mult_t4
+    float mult_t3 = e_id == 1 ? e1_mult_t3 : e_id == 2 ? e2_mult_t3 : e3_mult_t3
+    float mult_t2 = e_id == 1 ? e1_mult_t2 : e_id == 2 ? e2_mult_t2 : e3_mult_t2
+    float mult_t1 = e_id == 1 ? e1_mult_t1 : e_id == 2 ? e2_mult_t1 : e3_mult_t1
+    float mult_s1 = e_id == 1 ? e1_mult_s1 : e_id == 2 ? e2_mult_s1 : e3_mult_s1
+    float mult_s2 = e_id == 1 ? e1_mult_s2 : e_id == 2 ? e2_mult_s2 : e3_mult_s2
+    float mult_s3 = e_id == 1 ? e1_mult_s3 : e_id == 2 ? e2_mult_s3 : e3_mult_s3
+    float dial    = e_id == 1 ? e1_dial : e_id == 2 ? e2_dial : e3_dial
+
+    float p_t6 = exec_p + (dyn_cb * mult_t6 * dial), float p_t5 = exec_p + (dyn_cb * mult_t5 * dial), float p_t4 = exec_p + (dyn_cb * mult_t4 * dial), float p_t3 = exec_p + (dyn_cb * mult_t3 * dial), float p_t2 = exec_p + (dyn_cb * mult_t2 * dial), float p_t1 = exec_p + (dyn_cb * mult_t1 * dial)
+    float p_b  = exec_p
+    float p_s1 = exec_p - (dyn_cb * mult_s1 * dial), float p_s2 = exec_p - (dyn_cb * mult_s2 * dial), float p_s3 = exec_p - (dyn_cb * mult_s3 * dial)
+
+    f_draw_level(show_t6, p_t6, len_t6, col_t6, tgt_style_str, "T6:", shift_x, shift_y)
+    f_draw_level(show_t5, p_t5, len_t5, col_t5, tgt_style_str, "T5:", shift_x, shift_y)
+    f_draw_level(show_t4, p_t4, len_t4, col_t4, tgt_style_str, "T4:", shift_x, shift_y)
+    f_draw_level(show_t3, p_t3, len_t3, col_t3, tgt_style_str, "T3:", shift_x, shift_y)
+    f_draw_level(show_t2, p_t2, len_t2, col_t2, tgt_style_str, "T2:", shift_x, shift_y)
+    f_draw_level(show_t1, p_t1, len_t1, col_t1, tgt_style_str, "T1:", shift_x, shift_y)
+    f_draw_level(show_base, p_b, len_base, flag_c, base_style_str, "Base:", shift_x, shift_y)
+    f_draw_level(show_s1, p_s1, len_s1, col_s1, sub_style_str, "S1:", shift_x, shift_y)
+    f_draw_level(show_s2, p_s2, len_s2, col_s2, sub_style_str, "S2:", shift_x, shift_y)
+    f_draw_level(show_s3, p_s3, len_s3, col_s3, sub_style_str, "S3:", shift_x, shift_y)
+    
+    // Queue Visual Ticket
+    if show_ticket
+        float t_anch = ticket_anchor == "T6" ? p_t6 : ticket_anchor == "T5" ? p_t5 : ticket_anchor == "T4" ? p_t4 : ticket_anchor == "T3" ? p_t3 : ticket_anchor == "T2" ? p_t2 : ticket_anchor == "T1" ? p_t1 : ticket_anchor == "Base" ? p_b : ticket_anchor == "S1" ? p_s1 : ticket_anchor == "S2" ? p_s2 : p_s3
+        float t_top = ticket_height >= 0 ? t_anch + ticket_height : t_anch
+        float t_bot = ticket_height >= 0 ? t_anch : t_anch + ticket_height
+        
+        int eval_st_t = time + (shift_x * 60000)
+        int draw_st_t = eval_st_t + (ticket_shift * 60000)
+        
+        array.push(pending_tk_anch, t_anch + shift_y)
+        array.push(pending_tk_top, t_top + shift_y)
+        array.push(pending_tk_bot, t_bot + shift_y)
+        array.push(pending_tk_time, eval_st_t)
+        array.push(pending_tk_draw_t, draw_st_t)
+
+f_vwap_ok(c_val, ub3, ub2, ub1, vwap, lb1, lb2, lb3) =>
+    float ref_val = mute_ref == "Upper Band 3" ? ub3 : mute_ref == "Upper Band 2" ? ub2 : mute_ref == "Upper Band 1" ? ub1 : mute_ref == "Lower Band 1" ? lb1 : mute_ref == "Lower Band 2" ? lb2 : mute_ref == "Lower Band 3" ? lb3 : vwap
+    bool ok = true
+    if mute_dir == "Mute if ABOVE Band" and c_val > ref_val
+        ok := false
+    if mute_dir == "Mute if BELOW Band" and c_val < ref_val
+        ok := false
+    ok
+
+f_get_target_price(t_str, e_id, exec_p) =>
+    float dyn_cb = get_dynamic_cb(exec_p)
+    float dial = e_id == 1 ? e1_dial : e_id == 2 ? e2_dial : e3_dial
+    float mult = 0.0
+    if t_str == "T6"
+        mult := e_id == 1 ? e1_mult_t6 : e_id == 2 ? e2_mult_t6 : e3_mult_t6
+    else if t_str == "T5"
+        mult := e_id == 1 ? e1_mult_t5 : e_id == 2 ? e2_mult_t5 : e3_mult_t5
+    else if t_str == "T4"
+        mult := e_id == 1 ? e1_mult_t4 : e_id == 2 ? e2_mult_t4 : e3_mult_t4
+    else if t_str == "T3"
+        mult := e_id == 1 ? e1_mult_t3 : e_id == 2 ? e2_mult_t3 : e3_mult_t3
+    else if t_str == "T2"
+        mult := e_id == 1 ? e1_mult_t2 : e_id == 2 ? e2_mult_t2 : e3_mult_t2
+    else if t_str == "T1"
+        mult := e_id == 1 ? e1_mult_t1 : e_id == 2 ? e2_mult_t1 : e3_mult_t1
+    else if t_str == "S1"
+        mult := -(e_id == 1 ? e1_mult_s1 : e_id == 2 ? e2_mult_s1 : e3_mult_s1)
+    else if t_str == "S2"
+        mult := -(e_id == 1 ? e1_mult_s2 : e_id == 2 ? e2_mult_s2 : e3_mult_s2)
+    else if t_str == "S3"
+        mult := -(e_id == 1 ? e1_mult_s3 : e_id == 2 ? e2_mult_s3 : e3_mult_s3)
+    exec_p + (dyn_cb * mult * dial)
+
+// Helper Functions for Combined Engine Alignment Check
+f_is_sweeping(trackers) =>
+    bool active = false
+    if not na(trackers) and array.size(trackers) > 0
+        for idx = 0 to array.size(trackers) - 1
+            if array.get(trackers, idx).state == 1
+                active := true
+                break
+    active
+
+f_is_near_level(sp_arr, cur_h, cur_l, prox_tol) =>
+    bool near = false
+    if not na(sp_arr) and array.size(sp_arr) > 0
+        for idx = 0 to array.size(sp_arr) - 1
+            float lp = array.get(sp_arr, idx)
+            if (cur_l <= lp + prox_tol and cur_h >= lp - prox_tol)
+                near := true
+                break
+    near
+
+// =============================================================================
+// 📦 BLOCK 5: THE STATE MACHINE (THE BRAIN) & ALERT INJECTION
+// =============================================================================
+bool trig_1 = false, bool trig_2 = false, bool trig_3 = false
+bool stg1_1 = false, bool stg1_2 = false, bool stg1_3 = false
+bool stg1_sync = false
+
+// Candidate Reclaim Holders for Combined Gate Evaluation
+bool   cand_stg1_1 = false, float cand_lvl_1 = na, string cand_src_1 = "", float cand_swp_1 = 0.0, bool cand_ks_1 = false
+bool   cand_stg1_2 = false, float cand_lvl_2 = na, string cand_src_2 = "", float cand_swp_2 = 0.0, bool cand_ks_2 = false
+
+// Capture sweeping states across E1 & E2 prior to transition
+bool e1_was_sweeping = f_is_sweeping(tr_1)
+bool e2_was_sweeping = f_is_sweeping(tr_2)
+
+// Arrays for Background Alert Tracking
+varip int[] pending_vm_bars = array.new_int(0)
+varip string[] pending_vm_msgs = array.new_string(0)
+varip float[] active_nets = array.new_float(0)
+varip string[] active_net_msgs = array.new_string(0)
+
+// --- Process Engine 1 ---
+if enable_e1 and not na(tr_1) and array.size(tr_1) > 0
+    for i = 0 to array.size(tr_1) - 1
+        LevelTracker tr = array.get(tr_1, i)
+        float lvl = tr.price
+        bool valid_app = appr_mode == "Strict (Lows > Level)" ? (min_l1_past > lvl) : (min_c1_past > lvl)
+        bool struct_ok = use_struct ? (max_h1_past >= (lvl + tripwire_pts)) : true
+
+        if tr.state == 0
+            if valid_app and struct_ok and l1 <= lvl and (bar_index - tr.c_bar) >= cooldown
+                tr.state := 1, tr.t_low := l1, tr.c_bar := bar_index
+                e1_was_sweeping := true
+                if alt_tripwire
+                    f_alert("NXS E1: Tripwire Radar Alert at " + str.tostring(lvl), alert.freq_once_per_bar)
+        else if tr.state == 1
+            if l1 < tr.t_low
+                tr.t_low := l1 
+            if c1 >= (lvl + conf_1)
+                bool sweep_ok = (lvl - tr.t_low) >= min_sweep
+                if sweep_ok and not fired_e1_this_bar and barstate.isconfirmed
+                    if use_vertical_line
+                        if time > tr.last_stg1_time
+                            cand_stg1_1 := true
+                            cand_lvl_1  := lvl
+                            cand_src_1  := tr.source
+                            cand_swp_1  := lvl - tr.t_low
+                            tr.stage1_bar := bar_index
+                            tr.last_stg1_time := time
+                            last_e1_reclaim_bar := bar_index
+                            fired_e1_this_bar := true
+                            if force_cage_stg1
+                                if f_vwap_ok(c1, ub3_1, ub2_1, ub1_1, _vwap1, lb1_1, lb2_1, lb3_1)
+                                    if time > tr.last_trig_time
+                                        cand_ks_1 := true
+                                        tr.c_bar := bar_index
+                                        tr.last_trig_time := time
+                                tr.state := 0 
+                            else
+                                tr.state := 2 
+                    else
+                        if f_vwap_ok(c1, ub3_1, ub2_1, ub1_1, _vwap1, lb1_1, lb2_1, lb3_1)
+                            if time > tr.last_trig_time
+                                trig_1 := true, fired_e1_this_bar := true, tr.c_bar := bar_index
+                                tr.last_trig_time := time
+                                last_e1_reclaim_bar := bar_index
+                                f_draw_risk_cage(lvl, flag_col_e1, 1, close, 0, 0)
+                                if alt_killshot
+                                    f_alert("NXS E1: Killshot Validated at " + str.tostring(lvl), alert.freq_once_per_bar_close)
+                                if use_vm
+                                    line.new(bar_index + vm_shift, close - vm_ext_1, bar_index + vm_shift, close + vm_ext_1, color=vm_col, width=vm_thick)
+                                if alt_line
+                                    array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E1: Line in the Sand Crossed at " + str.tostring(lvl))
+                                if alt_tap
+                                    array.push(active_nets, f_get_target_price(alt_tap_line, 1, close)), array.push(active_net_msgs, "NXS E1: Risk Cage Tap at " + str.tostring(lvl))
+                            tr.state := 0
+        else if tr.state == 2
+            if bar_index >= tr.stage1_bar + active_delay
+                if c1 > lvl 
+                    if not fired_e1_this_bar and barstate.isconfirmed
+                        if f_vwap_ok(c1, ub3_1, ub2_1, ub1_1, _vwap1, lb1_1, lb2_1, lb3_1)
+                            if time > tr.last_trig_time
+                                trig_1 := true, fired_e1_this_bar := true, tr.c_bar := bar_index
+                                tr.last_trig_time := time
+                                f_draw_risk_cage(lvl, flag_col_e1, 1, close, 0, 0)
+                                if alt_killshot
+                                    f_alert("NXS E1: Killshot Validated at " + str.tostring(lvl), alert.freq_once_per_bar_close)
+                                if use_vm
+                                    line.new(bar_index + vm_shift, close - vm_ext_1, bar_index + vm_shift, close + vm_ext_1, color=vm_col, width=vm_thick)
+                                if alt_line
+                                    array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E1: Line in the Sand Crossed at " + str.tostring(lvl))
+                                if alt_tap
+                                    array.push(active_nets, f_get_target_price(alt_tap_line, 1, close)), array.push(active_net_msgs, "NXS E1: Risk Cage Tap at " + str.tostring(lvl))
+                tr.state := 0 
+
+// --- Process Engine 2 ---
+if enable_e2 and not na(tr_2) and array.size(tr_2) > 0
+    for i = 0 to array.size(tr_2) - 1
+        LevelTracker tr = array.get(tr_2, i)
+        float lvl = tr.price
+        bool valid_app = appr_mode == "Strict (Lows > Level)" ? (min_l2_past > lvl) : (min_c2_past > lvl)
+        bool struct_ok = use_struct ? (max_h2_past >= (lvl + tripwire_pts)) : true
+
+        if tr.state == 0
+            if valid_app and struct_ok and l2 <= lvl and (bar_index - tr.c_bar) >= cooldown
+                tr.state := 1, tr.t_low := l2, tr.c_bar := bar_index
+                e2_was_sweeping := true
+                if alt_tripwire
+                    f_alert("NXS E2: Tripwire Radar Alert at " + str.tostring(lvl), alert.freq_once_per_bar)
+        else if tr.state == 1
+            if l2 < tr.t_low
+                tr.t_low := l2 
+            if c2 >= (lvl + conf_2)
+                bool sweep_ok = (lvl - tr.t_low) >= min_sweep
+                if sweep_ok and not fired_e2_this_bar and barstate.isconfirmed
+                    if use_vertical_line
+                        if time > tr.last_stg1_time
+                            cand_stg1_2 := true
+                            cand_lvl_2  := lvl
+                            cand_src_2  := tr.source
+                            cand_swp_2  := lvl - tr.t_low
+                            tr.stage1_bar := bar_index
+                            tr.last_stg1_time := time
+                            last_e2_reclaim_bar := bar_index
+                            fired_e2_this_bar := true
+                            if force_cage_stg1
+                                if f_vwap_ok(c2, ub3_2, ub2_2, ub1_2, _vwap2, lb1_2, lb2_2, lb3_2)
+                                    if time > tr.last_trig_time
+                                        cand_ks_2 := true
+                                        tr.c_bar := bar_index
+                                        tr.last_trig_time := time
+                                tr.state := 0
+                            else
+                                tr.state := 2
+                    else
+                        if f_vwap_ok(c2, ub3_2, ub2_2, ub1_2, _vwap2, lb1_2, lb2_2, lb3_2)
+                            if time > tr.last_trig_time
+                                trig_2 := true, fired_e2_this_bar := true, tr.c_bar := bar_index
+                                tr.last_trig_time := time
+                                last_e2_reclaim_bar := bar_index
+                                f_draw_risk_cage(lvl, flag_col_e2, 2, close, 0, 0)
+                                if alt_killshot
+                                    f_alert("NXS E2: Killshot Validated at " + str.tostring(lvl), alert.freq_once_per_bar_close)
+                                if use_vm
+                                    line.new(bar_index + vm_shift, close - vm_ext_2, bar_index + vm_shift, close + vm_ext_2, color=vm_col, width=vm_thick)
+                                if alt_line
+                                    array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E2: Line in the Sand Crossed at " + str.tostring(lvl))
+                                if alt_tap
+                                    array.push(active_nets, f_get_target_price(alt_tap_line, 2, close)), array.push(active_net_msgs, "NXS E2: Risk Cage Tap at " + str.tostring(lvl))
+                            tr.state := 0
+        else if tr.state == 2
+            if bar_index >= tr.stage1_bar + active_delay
+                if c2 > lvl 
+                    if not fired_e2_this_bar and barstate.isconfirmed
+                        if f_vwap_ok(c2, ub3_2, ub2_2, ub1_2, _vwap2, lb1_2, lb2_2, lb3_2)
+                            if time > tr.last_trig_time
+                                trig_2 := true, fired_e2_this_bar := true, tr.c_bar := bar_index
+                                tr.last_trig_time := time
+                                f_draw_risk_cage(lvl, flag_col_e2, 2, close, 0, 0)
+                                if alt_killshot
+                                    f_alert("NXS E2: Killshot Validated at " + str.tostring(lvl), alert.freq_once_per_bar_close)
+                                if use_vm
+                                    line.new(bar_index + vm_shift, close - vm_ext_2, bar_index + vm_shift, close + vm_ext_2, color=vm_col, width=vm_thick)
+                                if alt_line
+                                    array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E2: Line in the Sand Crossed at " + str.tostring(lvl))
+                                if alt_tap
+                                    array.push(active_nets, f_get_target_price(alt_tap_line, 2, close)), array.push(active_net_msgs, "NXS E2: Risk Cage Tap at " + str.tostring(lvl))
+                tr.state := 0 
+
+// --- Evaluate Combined Alignment Gate for E1 & E2 Stage 1 Reclaims ---
+if cand_stg1_1 or cand_stg1_2
+    bool m1_e1 = cand_stg1_1 and (bar_index - last_e2_reclaim_bar <= sync_bars)
+    bool m2_e1 = cand_stg1_1 and (e2_was_sweeping or f_is_sweeping(tr_2) or cand_stg1_2)
+    bool m3_e1 = cand_stg1_1 and f_is_near_level(sp_2, h2, l2, sync_prox_2)
+
+    bool m1_e2 = cand_stg1_2 and (bar_index - last_e1_reclaim_bar <= sync_bars)
+    bool m2_e2 = cand_stg1_2 and (e1_was_sweeping or f_is_sweeping(tr_1) or cand_stg1_1)
+    bool m3_e2 = cand_stg1_2 and f_is_near_level(sp_1, h1, l1, sync_prox_1)
+
+    bool align_1 = sync_mode == "Mode 1: Tandem Reclaim (Within X Bars)" ? m1_e1 : sync_mode == "Mode 2: Structural Sync (Other Engine Sweeping)" ? m2_e1 : sync_mode == "Mode 3: Proximity Sync (Other Engine Near Level)" ? m3_e1 : sync_mode == "Mode 4: Any Alignment (Mode 1, 2, or 3)" ? (m1_e1 or m2_e1 or m3_e1) : false
+    bool align_2 = sync_mode == "Mode 1: Tandem Reclaim (Within X Bars)" ? m1_e2 : sync_mode == "Mode 2: Structural Sync (Other Engine Sweeping)" ? m2_e2 : sync_mode == "Mode 3: Proximity Sync (Other Engine Near Level)" ? m3_e2 : sync_mode == "Mode 4: Any Alignment (Mode 1, 2, or 3)" ? (m1_e2 or m2_e2 or m3_e2) : false
+    bool is_sync = sync_mode != "Off (Independent Engines)" and (align_1 or align_2)
+
+    if is_sync
+        stg1_sync := true
+        int    win_e   = cand_stg1_1 ? 1 : 2
+        float  win_lvl = cand_stg1_1 ? cand_lvl_1 : cand_lvl_2
+        string win_src = (cand_stg1_1 and cand_stg1_2) ? (cand_src_1 + "+" + cand_src_2) : (cand_stg1_1 ? cand_src_1 : cand_src_2)
+        float  win_swp = cand_stg1_1 ? cand_swp_1 : cand_swp_2
+        bool   win_ks  = cand_stg1_1 ? cand_ks_1 : cand_ks_2
+        float  win_vm  = win_e == 1 ? vm_ext_1 : vm_ext_2
+
+        f_draw_risk_cage(win_lvl, flag_col_sync, win_e, close, force_x_shift, force_y_shift)
+        if alt_timer
+            f_alert_reclaim_card(win_e, true, win_src, win_swp, alert.freq_once_per_bar_close)
+        if win_ks
+            if win_e == 1
+                trig_1 := true
+            else
+                trig_2 := true
+            if alt_killshot
+                f_alert("NXS SYNC: Killshot Validated at " + str.tostring(win_lvl), alert.freq_once_per_bar_close)
+            if use_vm
+                line.new(bar_index + vm_shift, close - win_vm, bar_index + vm_shift, close + win_vm, color=vm_col, width=vm_thick)
+            if alt_line
+                array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS SYNC: Line in the Sand Crossed at " + str.tostring(win_lvl))
+            if alt_tap
+                array.push(active_nets, f_get_target_price(alt_tap_line, win_e, close)), array.push(active_net_msgs, "NXS SYNC: Risk Cage Tap at " + str.tostring(win_lvl))
+    else
+        bool allow_solo = (sync_mode == "Off (Independent Engines)") or not mute_solo
+        if allow_solo
+            if cand_stg1_1
+                stg1_1 := true
+                f_draw_risk_cage(cand_lvl_1, flag_col_e1, 1, close, force_x_shift, force_y_shift)
+                if alt_timer
+                    f_alert_reclaim_card(1, false, cand_src_1, cand_swp_1, alert.freq_once_per_bar_close)
+                if cand_ks_1
+                    trig_1 := true
+                    if alt_killshot
+                        f_alert("NXS E1: Killshot Validated at " + str.tostring(cand_lvl_1), alert.freq_once_per_bar_close)
+                    if use_vm
+                        line.new(bar_index + vm_shift, close - vm_ext_1, bar_index + vm_shift, close + vm_ext_1, color=vm_col, width=vm_thick)
+                    if alt_line
+                        array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E1: Line in the Sand Crossed at " + str.tostring(cand_lvl_1))
+                    if alt_tap
+                        array.push(active_nets, f_get_target_price(alt_tap_line, 1, close)), array.push(active_net_msgs, "NXS E1: Risk Cage Tap at " + str.tostring(cand_lvl_1))
+            if cand_stg1_2
+                stg1_2 := true
+                // Only draw a second risk cage on the exact same bar if E1 didn't already draw one
+                if not cand_stg1_1
+                    f_draw_risk_cage(cand_lvl_2, flag_col_e2, 2, close, force_x_shift, force_y_shift)
+                if alt_timer
+                    f_alert_reclaim_card(2, false, cand_src_2, cand_swp_2, alert.freq_once_per_bar_close)
+                if cand_ks_2
+                    trig_2 := true
+                    if alt_killshot
+                        f_alert("NXS E2: Killshot Validated at " + str.tostring(cand_lvl_2), alert.freq_once_per_bar_close)
+                    if use_vm and not cand_stg1_1
+                        line.new(bar_index + vm_shift, close - vm_ext_2, bar_index + vm_shift, close + vm_ext_2, color=vm_col, width=vm_thick)
+                    if alt_line
+                        array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E2: Line in the Sand Crossed at " + str.tostring(cand_lvl_2))
+                    if alt_tap
+                        array.push(active_nets, f_get_target_price(alt_tap_line, 2, close)), array.push(active_net_msgs, "NXS E2: Risk Cage Tap at " + str.tostring(cand_lvl_2))
+
+// --- Process Engine 3 ---
+if enable_e3 and not na(tr_3) and array.size(tr_3) > 0
+    for i = 0 to array.size(tr_3) - 1
+        LevelTracker tr = array.get(tr_3, i)
+        float lvl = tr.price
+        bool valid_app = appr_mode == "Strict (Lows > Level)" ? (min_l3_past > lvl) : (min_c3_past > lvl)
+        bool struct_ok = use_struct ? (max_h3_past >= (lvl + tripwire_pts)) : true
+
+        if tr.state == 0
+            if valid_app and struct_ok and l3 <= lvl and (bar_index - tr.c_bar) >= cooldown
+                tr.state := 1, tr.t_low := l3, tr.c_bar := bar_index
+                if alt_tripwire
+                    f_alert("NXS E3: Tripwire Radar Alert at " + str.tostring(lvl), alert.freq_once_per_bar)
+        else if tr.state == 1
+            if l3 < tr.t_low
+                tr.t_low := l3 
+            if c3 >= (lvl + conf_3)
+                bool sweep_ok = (lvl - tr.t_low) >= min_sweep
+                if sweep_ok and not fired_e3_this_bar and barstate.isconfirmed
+                    if use_vertical_line
+                        if time > tr.last_stg1_time
+                            stg1_3 := true
+                            tr.stage1_bar := bar_index
+                            tr.last_stg1_time := time
+                            fired_e3_this_bar := true
+                            f_draw_risk_cage(lvl, flag_col_e3, 3, close, force_x_shift, force_y_shift)
+                            
+                            if alt_timer
+                                f_alert_reclaim_card(3, false, tr.source, lvl - tr.t_low, alert.freq_once_per_bar_close)
+                            if force_cage_stg1
+                                if f_vwap_ok(c3, ub3_3, ub2_3, ub1_3, _vwap3, lb1_3, lb2_3, lb3_3)
+                                    if time > tr.last_trig_time
+                                        trig_3 := true, tr.c_bar := bar_index
+                                        tr.last_trig_time := time
+                                        if alt_killshot
+                                            f_alert("NXS E3: Killshot Validated at " + str.tostring(lvl), alert.freq_once_per_bar_close)
+                                        if use_vm
+                                            line.new(bar_index + vm_shift, close - vm_ext_3, bar_index + vm_shift, close + vm_ext_3, color=vm_col, width=vm_thick)
+                                        if alt_line
+                                            array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E3: Line in the Sand Crossed at " + str.tostring(lvl))
+                                        if alt_tap
+                                            array.push(active_nets, f_get_target_price(alt_tap_line, 3, close)), array.push(active_net_msgs, "NXS E3: Risk Cage Tap at " + str.tostring(lvl))
+                                tr.state := 0
+                            else
+                                tr.state := 2
+                    else
+                        if f_vwap_ok(c3, ub3_3, ub2_3, ub1_3, _vwap3, lb1_3, lb2_3, lb3_3)
+                            if time > tr.last_trig_time
+                                trig_3 := true, fired_e3_this_bar := true, tr.c_bar := bar_index
+                                tr.last_trig_time := time
+                                f_draw_risk_cage(lvl, flag_col_e3, 3, close, 0, 0)
+                                if alt_killshot
+                                    f_alert("NXS E3: Killshot Validated at " + str.tostring(lvl), alert.freq_once_per_bar_close)
+                                if use_vm
+                                    line.new(bar_index + vm_shift, close - vm_ext_3, bar_index + vm_shift, close + vm_ext_3, color=vm_col, width=vm_thick)
+                                if alt_line
+                                    array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E3: Line in the Sand Crossed at " + str.tostring(lvl))
+                                if alt_tap
+                                    array.push(active_nets, f_get_target_price(alt_tap_line, 3, close)), array.push(active_net_msgs, "NXS E3: Risk Cage Tap at " + str.tostring(lvl))
+                            tr.state := 0
+        else if tr.state == 2
+            if bar_index >= tr.stage1_bar + active_delay
+                if c3 > lvl 
+                    if not fired_e3_this_bar and barstate.isconfirmed
+                        if f_vwap_ok(c3, ub3_3, ub2_3, ub1_3, _vwap3, lb1_3, lb2_3, lb3_3)
+                            if time > tr.last_trig_time
+                                trig_3 := true, fired_e3_this_bar := true, tr.c_bar := bar_index
+                                tr.last_trig_time := time
+                                f_draw_risk_cage(lvl, flag_col_e3, 3, close, 0, 0)
+                                if alt_killshot
+                                    f_alert("NXS E3: Killshot Validated at " + str.tostring(lvl), alert.freq_once_per_bar_close)
+                                if use_vm
+                                    line.new(bar_index + vm_shift, close - vm_ext_3, bar_index + vm_shift, close + vm_ext_3, color=vm_col, width=vm_thick)
+                                if alt_line
+                                    array.push(pending_vm_bars, bar_index + vm_shift), array.push(pending_vm_msgs, "NXS E3: Line in the Sand Crossed at " + str.tostring(lvl))
+                                if alt_tap
+                                    array.push(active_nets, f_get_target_price(alt_tap_line, 3, close)), array.push(active_net_msgs, "NXS E3: Risk Cage Tap at " + str.tostring(lvl))
+                tr.state := 0
+
+
+// =============================================================================
+// 📦 BLOCK 6: VISUALS, HUD, & DELAYED COMMS
+// =============================================================================
+
+// Background Alerts Processing (Line crosses & Net Taps)
+if alt_line and array.size(pending_vm_bars) > 0
+    for i = array.size(pending_vm_bars) - 1 to 0
+        if bar_index >= array.get(pending_vm_bars, i)
+            f_alert(array.get(pending_vm_msgs, i), alert.freq_once_per_bar)
+            array.remove(pending_vm_bars, i)
+            array.remove(pending_vm_msgs, i)
+
+if alt_tap and array.size(active_nets) > 0
+    for i = array.size(active_nets) - 1 to 0
+        float net_lvl = array.get(active_nets, i)
+        if low <= net_lvl and high >= net_lvl 
+            f_alert(array.get(active_net_msgs, i), alert.freq_once_per_bar)
+            array.remove(active_nets, i)
+            array.remove(active_net_msgs, i)
+
+// Background Visual Ticket Execution
+if show_ticket and array.size(pending_tk_anch) > 0
+    for i = array.size(pending_tk_anch) - 1 to 0
+        float anch = array.get(pending_tk_anch, i)
+        int eval_st_t = array.get(pending_tk_time, i)
+        
+        // Wait until the mathematical evaluation time (vertical marker) is reached
+        if time >= eval_st_t
+            // Race Condition Check: Did option premium close above the target limit line?
+            if close > anch
+                float t_top = array.get(pending_tk_top, i)
+                float t_bot = array.get(pending_tk_bot, i)
+                int draw_st_t = array.get(pending_tk_draw_t, i)
+                int et_t = draw_st_t + (ticket_len * 60000)
+                
+                box.new(draw_st_t, t_top, et_t, t_bot, xloc=xloc.bar_time, border_color=ticket_b_col, border_width=ticket_b_w, bgcolor=ticket_col)
+                
+            // Purge from queue (if it triggered, it drew. If it failed the race condition, it gets deleted).
+            array.remove(pending_tk_anch, i)
+            array.remove(pending_tk_top, i)
+            array.remove(pending_tk_bot, i)
+            array.remove(pending_tk_time, i)
+            array.remove(pending_tk_draw_t, i)
+
+
+// Plot Shapes (Split per Engine + Dedicated Aligned Reclaim Dot)
+plotshape(stg1_sync, title="Aligned Reclaim (E1+E2)", style=shape.circle, location=location.belowbar, color=reclaim_col_sync, size=size.tiny)
+plotshape(stg1_1, title="E1 Reclaim", style=shape.circle, location=location.belowbar, color=reclaim_col_e1, size=size.tiny)
+plotshape(stg1_2, title="E2 Reclaim", style=shape.circle, location=location.belowbar, color=reclaim_col_e2, size=size.tiny)
+plotshape(stg1_3, title="E3 Reclaim", style=shape.circle, location=location.belowbar, color=reclaim_col_e3, size=size.tiny)
+plotshape(show_trig_shapes and trig_1, title="E1 Trap", style=shape.triangleup, location=location.belowbar, color=flag_col_e1, size=size.normal)
+plotshape(show_trig_shapes and trig_2, title="E2 Trap", style=shape.triangleup, location=location.belowbar, color=flag_col_e2, size=size.normal)
+plotshape(show_trig_shapes and trig_3, title="E3 Trap", style=shape.triangleup, location=location.belowbar, color=flag_col_e3, size=size.normal)
+
+// Visual Grid
+var line[] grid_lines = array.new_line(0)
+if barstate.islast and plot_macro_grid
+    if array.size(grid_lines) > 0
+        for i = 0 to array.size(grid_lines) - 1
+            line.delete(array.get(grid_lines, i))
+        array.clear(grid_lines)
+        
+    if enable_e1 and not na(tr_1) and array.size(tr_1) > 0
+        for i = 0 to array.size(tr_1) - 1
+            LevelTracker tr = array.get(tr_1, i)
+            array.push(grid_lines, line.new(bar_index - 1, tr.price, bar_index, tr.price, extend=extend.both, color=tr.c, style=f_get_style(tr.s), width=tr.w))
+            
+    if enable_e2 and not na(tr_2) and array.size(tr_2) > 0
+        for i = 0 to array.size(tr_2) - 1
+            LevelTracker tr = array.get(tr_2, i)
+            array.push(grid_lines, line.new(bar_index - 1, tr.price, bar_index, tr.price, extend=extend.both, color=tr.c, style=f_get_style(tr.s), width=tr.w))
+
+    if enable_e3 and not na(tr_3) and array.size(tr_3) > 0
+        for i = 0 to array.size(tr_3) - 1
+            LevelTracker tr = array.get(tr_3, i)
+            array.push(grid_lines, line.new(bar_index - 1, tr.price, bar_index, tr.price, extend=extend.both, color=tr.c, style=f_get_style(tr.s), width=tr.w))
+
+// HUD Table
+var table lvl_tbl = table.new(tbl_pos == "Top Right" ? position.top_right : tbl_pos == "Middle Right" ? position.middle_right : tbl_pos == "Bottom Right" ? position.bottom_right : tbl_pos == "Top Left" ? position.top_left : position.bottom_left, 3, 101, border_width = 1, border_color = color.new(#FFFFFF, 80))
+
+f_get_lvl_data(trackers, chk_price) =>
+    bool is_fresh = false
+    string src_str = ""
+    int t_formed = 0
+    if not na(trackers) and array.size(trackers) > 0
+        for i = 0 to array.size(trackers) - 1
+            LevelTracker tr = array.get(trackers, i)
+            if tr.price == chk_price
+                src_str := tr.source
+                t_formed := tr.time_formed
+                if tr.time_formed > 0 and (time - tr.time_formed) <= (fresh_days * 86400000)
+                    is_fresh := true
+                break
+    [is_fresh, src_str, t_formed]
+
+if barstate.islast and show_tbl
+    table.cell(lvl_tbl, 0, 0, "Engine 1 (" + sym_1_eff + ")", text_color=color.new(#FFFFFF, 0), bgcolor=col_head1, text_size=f_get_size(tbl_txt_s))
+    table.cell(lvl_tbl, 1, 0, "Engine 2 (" + sym_2_eff + ")", text_color=color.new(#FFFFFF, 0), bgcolor=col_head2, text_size=f_get_size(tbl_txt_s))
+    table.cell(lvl_tbl, 2, 0, "Engine 3 (" + sym_3_eff + ")", text_color=color.new(#FFFFFF, 0), bgcolor=col_head3, text_size=f_get_size(tbl_txt_s))
+    
+    int r1 = not na(sp_1) ? array.size(sp_1) : 0
+    int r2 = not na(sp_2) ? array.size(sp_2) : 0
+    int r3 = not na(sp_3) ? array.size(sp_3) : 0
+    
+    int max_r = math.max(r1, math.max(r2, r3))
+    if max_r > 0
+        for i = 0 to math.min(max_r - 1, 98)
+            string val1_str = "", color txt_col1 = col_celltxt
+            if i < r1
+                float p1 = array.get(sp_1, i)
+                [is_f1, src1, t1_v] = f_get_lvl_data(tr_1, p1)
+                val1_str := str.tostring(p1)
+                if mark_fresh and is_f1
+                    val1_str += " 🌟 [" + src1 + " " + str.format_time(t1_v, "MM/dd", "America/New_York") + "]"
+                    txt_col1 := fresh_col
+
+            string val2_str = "", color txt_col2 = col_celltxt
+            if i < r2
+                float p2 = array.get(sp_2, i)
+                [is_f2, src2, t2_v] = f_get_lvl_data(tr_2, p2)
+                val2_str := str.tostring(p2)
+                if mark_fresh and is_f2
+                    val2_str += " 🌟 [" + src2 + " " + str.format_time(t2_v, "MM/dd", "America/New_York") + "]"
+                    txt_col2 := fresh_col
+
+            string val3_str = "", color txt_col3 = col_celltxt
+            if i < r3
+                float p3 = array.get(sp_3, i)
+                [is_f3, src3, t3_v] = f_get_lvl_data(tr_3, p3)
+                val3_str := str.tostring(p3)
+                if mark_fresh and is_f3
+                    val3_str += " 🌟 [" + src3 + " " + str.format_time(t3_v, "MM/dd", "America/New_York") + "]"
+                    txt_col3 := fresh_col
+
+            table.cell(lvl_tbl, 0, i + 1, val1_str, text_color=txt_col1, bgcolor=col_cellbg, text_size=f_get_size(tbl_txt_s))
+            table.cell(lvl_tbl, 1, i + 1, val2_str, text_color=txt_col2, bgcolor=col_cellbg, text_size=f_get_size(tbl_txt_s))
+            table.cell(lvl_tbl, 2, i + 1, val3_str, text_color=txt_col3, bgcolor=col_cellbg, text_size=f_get_size(tbl_txt_s))
